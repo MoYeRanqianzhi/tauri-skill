@@ -6,6 +6,11 @@ fn log(msg: String) {
     eprintln!("[page] {msg}");
 }
 
+#[tauri::command]
+fn poc_env(name: String) -> Option<String> {
+    std::env::var(name).ok()
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -18,9 +23,10 @@ pub fn run() {
                     titlebar::install(&w)?;
                 }
             }
+            let _ = app; // only used on Windows
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![log, #[cfg(windows)] titlebar::titlebar_insets, #[cfg(windows)] titlebar::set_caption_color])
+        .invoke_handler(tauri::generate_handler![log, poc_env, #[cfg(windows)] titlebar::titlebar_insets, #[cfg(windows)] titlebar::set_caption_color])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

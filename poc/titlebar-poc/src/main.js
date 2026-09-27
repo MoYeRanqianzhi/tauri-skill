@@ -1,6 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
-import { watchTitlebarInsets, setTitlebarColor } from './titlebar.js';
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { watchTitlebarInsets, setTitlebarColor, isWindows, enableDragRegion } from './titlebar.js';
 const $ = (id) => document.getElementById(id);
+addEventListener('unhandledrejection', (e) => invoke('log', { msg: 'unhandled rejection: ' + (e.reason?.message ?? e.reason) }));
+addEventListener('mousedown', (e) => invoke('log', { msg: `mousedown target=${e.target.id || e.target.tagName} detail=${e.detail} button=${e.button}` }), true);
 const log = (m) => { $('log').textContent = m + '\n' + $('log').textContent; invoke('log', { msg: m }); };
 
 const THEMES = {
@@ -14,7 +17,7 @@ const THEMES = {
 async function applyTheme(name) {
   const t = THEMES[name];
   const s = document.documentElement.style;
-  s.setProperty('--tb-bg', t.tbBg); s.setProperty('--tb-fg', t.tbFg); s.setProperty('--tb-muted', t.tbMuted);
+  s.setProperty('--titlebar-bg', t.tbBg); s.setProperty('--titlebar-fg', t.tbFg); s.setProperty('--titlebar-muted', t.tbMuted);
   s.setProperty('--tb-hover', t.scheme === 'dark' ? 'rgb(255 255 255 / .1)' : 'rgb(0 0 0 / .06)');
   s.setProperty('--bg', t.bg); s.setProperty('--card', t.card); s.setProperty('--fg', t.fg);
   s.setProperty('--muted', t.muted); s.setProperty('--accent', t.accent);
@@ -33,7 +36,7 @@ for (const [name, t] of Object.entries(THEMES)) {
 
 function reportRects() {
   const r = {};
-  for (const id of ['titlebar', 'brand', 'menu-file', 'search', 'min40', ...Object.keys(THEMES).map((n) => 'theme-' + n)]) {
+  for (const id of ['titlebar', 'brand', 'menu-file', 'search', 'min40', 'wc-min', 'wc-max', 'wc-close', ...Object.keys(THEMES).map((n) => 'theme-' + n)]) {
     const b = $(id).getBoundingClientRect();
     r[id] = [b.left, b.top, b.right, b.bottom].map((v) => Math.round(v * devicePixelRatio));
   }
@@ -41,6 +44,7 @@ function reportRects() {
 }
 function showInsets() {
   const v = (n) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n)).toFixed(2);
+  invoke('log', { msg: `insets top=${v('--titlebar-top')} height=${v('--titlebar-height')} right=${v('--titlebar-right')} zoomed-dpr=${devicePixelRatio}` });
   $('insets').textContent = `top ${v('--titlebar-top')}px, height ${v('--titlebar-height')}px, right ${v('--titlebar-right')}px`;
   $('dpr').textContent = devicePixelRatio;
   reportRects();
@@ -58,3 +62,18 @@ addEventListener('blur', () => { document.body.classList.add('inactive'); $('foc
 ['menu-file', 'menu-edit', 'menu-view'].forEach((id) => $(id).onclick = () => log(id + ' clicked'));
 $('search').oninput = (e) => log('search: ' + e.target.value);
 applyTheme('light');
+
+// Linux (or any platform) with decorations: false: draw our own controls and use Tauri's JS drag region.
+const appWindow = getCurrentWindow();
+if (!isWindows && !(await appWindow.isDecorated())) {
+  $('wc').hidden = false;
+  $('wc-min').onclick = () => appWindow.minimize();
+  $('wc-max').onclick = () => appWindow.toggleMaximize();
+  $('wc-close').onclick = () => appWindow.close();
+  const dragMode = await invoke('poc_env', { name: 'POC_DRAG' }); // "tauri" (default) | "threshold" | "none"
+  if (dragMode === 'threshold') enableDragRegion($('titlebar'), appWindow);
+  else if (dragMode !== 'none') $('titlebar').setAttribute('data-tauri-drag-region', '');
+  log('drag mode ' + (dragMode ?? 'tauri'));
+  log('custom window controls enabled');
+}
+

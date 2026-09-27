@@ -36,7 +36,7 @@ const WRY_CONTAINER_CLASS: PCWSTR = w!("WRY_WEBVIEW");
 
 /// Installs the title bar on `window`. Call once from `setup`, after the window exists.
 pub fn install(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::error::Error>> {
-    // Convert through the raw pointer so this compiles even if your `windows` version differs from Tauri's.
+    // `hwnd()` returns Tauri's `windows` HWND; rewrap the raw handle as this crate's HWND.
     let hwnd = HWND(window.hwnd()?.0);
     unsafe {
         // Fail loudly instead of silently shipping covered caption buttons if wry changes its container.

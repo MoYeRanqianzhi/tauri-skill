@@ -1,4 +1,5 @@
-// Frontend half of the Windows custom title bar (pairs with windows_titlebar.rs).
+// Frontend helpers for the custom title bar. The Windows half pairs with windows_titlebar.rs;
+// enableDragRegion() is for platforms where the page draws the whole bar (Linux, decorations: false).
 // Framework-agnostic ES module; works as-is in TS projects (`allowJs`) or rename to .ts.
 //
 // CSS variables written on <html>:
@@ -6,6 +7,7 @@
 //   --titlebar-height  visible caption-button height = recommended title bar row height
 //   --titlebar-right   width reserved for the native caption buttons
 import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 
 export const isWindows = navigator.userAgent.includes('Windows');
 
@@ -38,4 +40,37 @@ export function watchTitlebarInsets(root = document.documentElement) {
 export async function setTitlebarColor(background) {
   if (!isWindows) return;
   await invoke('set_caption_color', { color: background });
+}
+
+/**
+ * Makes `bar` drag the window and toggle maximize on double-click, for bars without native drag
+ * support (Linux with `decorations: false`). Only presses on the bar itself count, not its children.
+ *
+ * The OS move starts only after the pointer travels a few px. `data-tauri-drag-region` starts it on
+ * the first press instead; on X11 the window manager's move grab then swallows the second press, so
+ * double-click never maximizes. Needs `core:window:allow-start-dragging` and
+ * `core:window:allow-toggle-maximize`. Do not use it on Windows; `app-region: drag` is native there.
+ * Returns a disposer.
+ */
+export function enableDragRegion(bar, appWindow = getCurrentWindow()) {
+  let start = null;
+  const down = (e) => { if (e.button === 0 && e.target === bar) start = [e.screenX, e.screenY]; };
+  const move = (e) => {
+    if (start && (e.buttons & 1) && Math.hypot(e.screenX - start[0], e.screenY - start[1]) > 3) {
+      start = null;
+      appWindow.startDragging();
+    }
+  };
+  const up = () => { start = null; };
+  const dbl = (e) => { if (e.target === bar) appWindow.toggleMaximize(); };
+  bar.addEventListener('mousedown', down);
+  addEventListener('mousemove', move);
+  addEventListener('mouseup', up);
+  bar.addEventListener('dblclick', dbl);
+  return () => {
+    bar.removeEventListener('mousedown', down);
+    removeEventListener('mousemove', move);
+    removeEventListener('mouseup', up);
+    bar.removeEventListener('dblclick', dbl);
+  };
 }

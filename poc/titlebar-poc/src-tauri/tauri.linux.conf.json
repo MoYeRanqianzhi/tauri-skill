@@ -1,0 +1,12 @@
+{
+  "app": {
+    "windows": [
+      {
+        "title": "titlebar-poc",
+        "width": 900,
+        "height": 600,
+        "decorations": false
+      }
+    ]
+  }
+}

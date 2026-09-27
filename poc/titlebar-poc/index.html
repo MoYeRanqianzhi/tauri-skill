@@ -5,8 +5,7 @@
 <title>titlebar-poc</title>
 <style>
   :root {
-    --titlebar-top: 0px; --titlebar-height: 32px; --titlebar-right: 138px;
-    --tb-bg: #f3f3f3; --tb-fg: #1b1b1f; --tb-muted: #6b6b73; --tb-hover: rgb(0 0 0 / .06);
+    --titlebar-bg: #f3f3f3; --titlebar-fg: #1b1b1f; --titlebar-muted: #6b6b73; --tb-hover: rgb(0 0 0 / .06);
     --bg: #fafafa; --card: #ffffff; --fg: #1b1b1f; --muted: #6b6b73; --line: rgb(0 0 0 / .08);
     --accent: #3b5bdb;
     font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
@@ -16,33 +15,41 @@
   body { display: flex; flex-direction: column; background: var(--bg); color: var(--fg); }
 
   .titlebar {
-    box-sizing: content-box; /* keep the 1px separator below the caption-button hole */
-    --tb-bar: max(var(--titlebar-height), var(--tb-min, 0px));
-    height: var(--tb-bar); flex: none; display: flex; align-items: center; gap: 2px;
-    padding: var(--titlebar-top) var(--titlebar-right) 0 10px;
-    background: var(--tb-bg); color: var(--tb-fg);
+    --bar: max(var(--titlebar-height, 32px), var(--tb-min, 0px)); /* --tb-min: demo toggle for the min-height variant */
+    box-sizing: content-box; /* border-bottom stays below the button hole */
+    height: var(--bar); flex: none; display: flex; align-items: center; gap: 2px;
+    padding: var(--titlebar-top, 0px) var(--titlebar-right, 8px) 0 10px;
+    background: var(--titlebar-bg); color: var(--titlebar-fg);
     border-bottom: 1px solid var(--line);
     app-region: drag; user-select: none;
     transition: color .15s;
   }
-  body.inactive .titlebar { color: var(--tb-muted); }
-  .titlebar :is(button, input) { app-region: no-drag; }
+  body.inactive .titlebar { color: var(--titlebar-muted); }
+  .titlebar :is(button, input, select, textarea, a, [role="button"], [contenteditable]) { app-region: no-drag; }
   .brand { display: flex; align-items: center; gap: 8px; padding-right: 10px; font-weight: 600; }
   .brand svg { width: 16px; height: 16px; color: var(--accent); }
   /* Title bar controls scale with the bar: it is ~22px tall when maximized at 150% (DWM buttons shrink). */
   .tb-btn {
-    height: calc(var(--tb-bar) - 8px); padding: 0 9px; border: 0; border-radius: 5px;
+    height: calc(var(--bar) - 8px); padding: 0 9px; border: 0; border-radius: 5px;
     background: transparent; color: inherit; font: inherit;
   }
   .tb-btn:hover { background: var(--tb-hover); }
   .search {
-    margin: 0 auto; width: min(360px, 40%); height: min(28px, calc(var(--tb-bar) - 8px)); padding: 0 10px;
+    margin: 0 auto; width: min(360px, 40%); height: min(28px, calc(var(--bar) - 8px)); padding: 0 10px;
     border: 1px solid var(--line); border-radius: 6px; outline: none;
     background: var(--tb-hover); color: inherit; font: inherit;
   }
   .search:focus { border-color: var(--accent); }
-  .search::placeholder { color: var(--tb-muted); }
+  .search::placeholder { color: var(--titlebar-muted); }
 
+  /* Self-drawn window controls: only shown where the OS draws none (Linux with decorations: false). */
+  .wc { display: flex; gap: 6px; margin-left: 8px; }
+  .wc[hidden] { display: none; }
+  .wc-btn { width: calc(var(--bar) - 10px); height: calc(var(--bar) - 10px); display: grid; place-items: center;
+            border: 0; border-radius: 50%; background: var(--tb-hover); color: inherit; }
+  .wc-btn:hover { background: rgb(127 127 127 / .28); }
+  .wc-close:hover { background: #d93a3a; color: #fff; }
+  .wc-btn svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.2; }
   main { flex: 1; overflow: auto; padding: 24px; display: grid; gap: 16px; align-content: start;
          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
@@ -71,6 +78,11 @@
     <button class="tb-btn" id="menu-edit">Edit</button>
     <button class="tb-btn" id="menu-view">View</button>
     <input class="search" id="search" placeholder="Search or run a command" />
+    <div class="wc" id="wc" hidden>
+      <button class="wc-btn" id="wc-min" aria-label="Minimize"><svg viewBox="0 0 10 10"><path d="M1.5 5h7" /></svg></button>
+      <button class="wc-btn" id="wc-max" aria-label="Maximize"><svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" rx="1" /></svg></button>
+      <button class="wc-btn wc-close" id="wc-close" aria-label="Close"><svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" /></svg></button>
+    </div>
   </header>
   <main>
     <section class="card">
