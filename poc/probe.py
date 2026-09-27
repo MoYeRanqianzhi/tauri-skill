@@ -85,7 +85,10 @@ def shot(path, box=None):
 def foreground(h):
     # Temporarily topmost so other apps cannot cover the window under test.
     u32.SetWindowPos(h, -1, 0, 0, 0, 0, 0x3 | 0x10)
-    key(0x12); u32.SetForegroundWindow(h); key(0x12, True); time.sleep(0.3)
+    # Tapping Alt grants foreground rights but puts the window into system-menu keyboard mode, which
+    # swallows mouse messages (cursor stuck on arrow, no hover). Escape leaves that mode.
+    key(0x12); u32.SetForegroundWindow(h); key(0x12, True); time.sleep(0.2)
+    key(0x1B); key(0x1B, True); time.sleep(0.2)
 
 
 if __name__ == '__main__':

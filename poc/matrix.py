@@ -11,7 +11,7 @@ def geo():
     R = p.rects(h); cy = p.center(R['titlebar'])[1]
     return R, p.rect(h, True), cy, (R['menu-file'][2] + R['search'][0]) // 2 + 80
 R, (l, t, r, b), cy, gx = geo()
-p.move(gx, t + 3); time.sleep(0.2); p.move(gx + 1, t + 3); time.sleep(0.4)
+p.move(gx, t + 12); time.sleep(0.2); p.move(gx + 1, t + 3); time.sleep(0.4)
 res['top edge cursor is SIZENS'] = cursor() == SIZENS
 w0 = p.rect(h); p.drag(gx, t + 3, gx, t - 60); w1 = p.rect(h)
 res['top edge resize'] = (w1[1] < w0[1] and w1[3] == w0[3], w0, w1)
@@ -26,7 +26,7 @@ res['double-click maximizes'] = bool(p.u32.IsZoomed(h))
 time.sleep(0.5); R, (l, t, r, b), cy, gx = geo()
 mon = p.rect(h, True)
 res['maximized client'] = mon
-res['maximized hits'] = [p.hit(h, x, t + 4)['nchittest'] for x in (r - 30, r - 100, r - 170)] + [p.hit(h, x, t + 1)['under'] for x in (r - 100, gx)]
+res['maximized hits (close,max,min,page-bar)'] = [p.hit(h, x, max(t, 0) + 4)['nchittest'] for x in (r - 30, r - 100, r - 170)] + [p.hit(h, gx, max(t, 0) + 4)['under']]
 p.move(gx, t + 400); time.sleep(0.4); p.shot('shots/max_top.png', (r - 700, t, r, t + 90))
 p.move(r - 100, t + 15); time.sleep(0.3); p.move(r - 99, t + 15); time.sleep(1.8); p.shot('shots/max_snap.png', (r - 900, t, r, t + 450))
 p.key(0x1B); p.key(0x1B, True); p.move(gx, t + 400); time.sleep(0.3)

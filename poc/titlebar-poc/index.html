@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>titlebar-poc</title>
+<style>
+  :root {
+    --titlebar-top: 0px; --titlebar-height: 32px; --titlebar-right: 138px;
+    --tb-bg: #f3f3f3; --tb-fg: #1b1b1f; --tb-muted: #6b6b73; --tb-hover: rgb(0 0 0 / .06);
+    --bg: #fafafa; --card: #ffffff; --fg: #1b1b1f; --muted: #6b6b73; --line: rgb(0 0 0 / .08);
+    --accent: #3b5bdb;
+    font: 13px/1.45 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { display: flex; flex-direction: column; background: var(--bg); color: var(--fg); }
+
+  .titlebar {
+    box-sizing: content-box; /* keep the 1px separator below the caption-button hole */
+    --tb-bar: max(var(--titlebar-height), var(--tb-min, 0px));
+    height: var(--tb-bar); flex: none; display: flex; align-items: center; gap: 2px;
+    padding: var(--titlebar-top) var(--titlebar-right) 0 10px;
+    background: var(--tb-bg); color: var(--tb-fg);
+    border-bottom: 1px solid var(--line);
+    app-region: drag; user-select: none;
+    transition: color .15s;
+  }
+  body.inactive .titlebar { color: var(--tb-muted); }
+  .titlebar :is(button, input) { app-region: no-drag; }
+  .brand { display: flex; align-items: center; gap: 8px; padding-right: 10px; font-weight: 600; }
+  .brand svg { width: 16px; height: 16px; color: var(--accent); }
+  /* Title bar controls scale with the bar: it is ~22px tall when maximized at 150% (DWM buttons shrink). */
+  .tb-btn {
+    height: calc(var(--tb-bar) - 8px); padding: 0 9px; border: 0; border-radius: 5px;
+    background: transparent; color: inherit; font: inherit;
+  }
+  .tb-btn:hover { background: var(--tb-hover); }
+  .search {
+    margin: 0 auto; width: min(360px, 40%); height: min(28px, calc(var(--tb-bar) - 8px)); padding: 0 10px;
+    border: 1px solid var(--line); border-radius: 6px; outline: none;
+    background: var(--tb-hover); color: inherit; font: inherit;
+  }
+  .search:focus { border-color: var(--accent); }
+  .search::placeholder { color: var(--tb-muted); }
+
+  main { flex: 1; overflow: auto; padding: 24px; display: grid; gap: 16px; align-content: start;
+         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card h2 { margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+  .muted { color: var(--muted); }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatch {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px;
+    border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font: inherit;
+  }
+  .swatch i { width: 18px; height: 18px; border-radius: 5px; border: 1px solid rgb(0 0 0 / .12); }
+  .swatch[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  #log { margin: 0; font: 12px/1.5 "Cascadia Mono", Consolas, monospace; color: var(--muted); max-height: 220px; overflow: auto; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-family: "Cascadia Mono", Consolas, monospace; }
+</style>
+</head>
+<body>
+  <header class="titlebar" id="titlebar">
+    <div class="brand" id="brand">
+      <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5" opacity=".55"/><rect x="1" y="9" width="6" height="6" rx="1.5" opacity=".55"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+      Workbench
+    </div>
+    <button class="tb-btn" id="menu-file">File</button>
+    <button class="tb-btn" id="menu-edit">Edit</button>
+    <button class="tb-btn" id="menu-view">View</button>
+    <input class="search" id="search" placeholder="Search or run a command" />
+  </header>
+  <main>
+    <section class="card">
+      <h2>Title bar theme</h2>
+      <div class="swatches" id="themes"></div>
+    </section>
+    <section class="card">
+      <h2>Window</h2>
+      <dl>
+        <dt>Insets</dt><dd id="insets">-</dd>
+        <dt>Scale</dt><dd id="dpr">-</dd>
+        <dt>Focus</dt><dd id="focus">-</dd>
+        <dt>Page scheme</dt><dd id="scheme">-</dd>
+        <dt>Bar height</dt><dd><label><input type="checkbox" id="min40" /> at least 40px</label></dd>
+      </dl>
+    </section>
+    <section class="card" style="grid-column: 1 / -1">
+      <h2>Events</h2>
+      <pre id="log"></pre>
+    </section>
+  </main>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
