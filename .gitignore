@@ -1,0 +1,11 @@
+/.worktrees/
+.agents/**/*.local*
+.agents/*.local*
+.agents/memory.local/
+poc/**/target/
+poc/**/node_modules/
+poc/**/gen/
+poc/shots/
+poc/app.log
+poc/**/__pycache__/
+poc/**/package-lock.json
