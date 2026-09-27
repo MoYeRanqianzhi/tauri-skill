@@ -18,6 +18,11 @@ Every row is a failure that was reproduced during development and fixed. Each fi
 | Page CSS switches to dark after a dark or colored title bar is set | `setTheme()` also changes WebView2's `prefers-color-scheme` | Don't call `setTheme()` to style buttons. DWM picks contrasting glyph and hover colors from the caption color by itself. |
 | Title bar controls ignore clicks | Elements under `app-region: drag` never get mouse events | Mark them `app-region: no-drag`. |
 | Title bar does not drag, double-click, or open the system menu | No `app-region: drag` on the bar, or it is overridden by `no-drag` | Put `app-region: drag` on the bar itself. wry enables WebView2 non-client region support, and that gives the native behaviours. |
+| Linux: double-click on the bar does not maximize | `data-tauri-drag-region` starts the window manager's move grab on the first press; the second press never reaches the page | Use `enableDragRegion(bar)`: it starts the move only after 3 px of travel, and handles `dblclick` itself. |
+| Linux: bar does not drag at all | WebKitGTK ignores `app-region: drag` | Use `enableDragRegion(bar)` (or `data-tauri-drag-region`), plus `core:window:allow-start-dragging`. |
+| Linux: window title or size reset to "Tauri App" / 800 × 600 | `tauri.linux.conf.json` replaced the whole `windows` array | Repeat the complete window object in the platform config file. |
+| Linux: edges do not resize | Window is maximized (Tauri disables the inset then), or the press is more than 5 px inside the edge | Restore first; press within 5 px of the edge. |
+| Unused-variable warning or error for `app` in `setup` on non-Windows targets | `app` is only used inside `#[cfg(windows)]` | Add `let _ = app;` after the Windows block. |
 | Search box or tabs look squeezed when maximized | Fixed pixel heights inside a bar that shrinks | Use `height: min(28px, calc(var(--titlebar-height) - 8px))`, or the min-height variant. |
 
 ## Do not add
@@ -44,4 +49,8 @@ These produced false failures or real damage while the harness was being built.
 | Hovering maximize and moving on | The Snap Layouts flyout covers later screenshots | Send Escape after each maximize hover. |
 | First hover right after programmatic activation | Sometimes no highlight was captured | Take the evidence from later samples. |
 | Checking the cursor without moving the mouse | No `WM_SETCURSOR` is sent, so the reading is stale | Move onto the target point before reading `GetCursorInfo`. |
+| `pkill -f <binary path>` inside a remote ssh command | It matched the ssh session's own command line and killed it (exit 255) | Use `pkill -x <process name>`. |
+| Linux on Xvfb without an a11y bus | GTK waited up to ~25 s for AT-SPI before mapping the window | Set `NO_AT_BRIDGE=1`. Wait for both the mapped window and the page's first log line before acting. |
+| Clicking "the bar" at a computed point | The point landed on a `no-drag` menu button, so the drag was a false negative | Log the `mousedown` target, and pick points from measured element rects. |
+| Assuming window state between steps | A step toggled maximize in the wrong direction; the resize tests then ran while maximized | Read the state (`IsZoomed`, `_NET_WM_STATE`) before each step. |
 | Top-edge resize dragged up to the screen top | Windows vertical-maximized the window (native), so the resulting size looked wrong | Start edge-drag tests well away from the screen edges. |

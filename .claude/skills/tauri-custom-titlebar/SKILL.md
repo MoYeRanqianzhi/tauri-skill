@@ -1,6 +1,6 @@
 ---
 name: tauri-custom-titlebar
-description: Build a custom title bar for a Tauri 2 app, where web content (menus, tabs, search) fills the title bar strip while Windows keeps its real caption buttons, with Snap Layouts on hover, native hover and press, the system menu, double-click maximize, Aero Snap drag and edge resizing. Ships verified Rust and JS files plus a verification script. Use whenever the user wants a custom, frameless, overlay or "Electron titleBarOverlay"-style title bar in Tauri, custom window controls or decorations, or content inside the title bar. Also use when they report missing Snap Layouts, stuck caption-button hover, buttons hidden behind the webview, broken top-edge resize, or wrong title bar height when maximized. Windows is verified. macOS and Linux configuration is included.
+description: Build a custom title bar for a Tauri 2 app, where web content (menus, tabs, search) fills the title bar strip while Windows keeps its real caption buttons, with Snap Layouts on hover, native hover and press, the system menu, double-click maximize, Aero Snap drag and edge resizing. Ships verified Rust and JS files plus a verification script. Use whenever the user wants a custom, frameless, overlay or "Electron titleBarOverlay"-style title bar in Tauri, custom window controls or decorations, or content inside the title bar. Also use when they report missing Snap Layouts, stuck caption-button hover, buttons hidden behind the webview, broken top-edge resize, or wrong title bar height when maximized. Verified on Windows 11 and Linux (X11). macOS guidance is included but unverified.
 ---
 
 # Tauri custom title bar
@@ -11,7 +11,8 @@ On Windows, keep the native frame. Remove only the caption, let DWM keep drawing
 
 - **Windows, app content in the title bar:** follow the recipe below. Do not use `decorations: false` and do not draw HTML caption buttons.
 - **Buttons must be custom-drawn:** use `decorations: false` + HTML buttons + `data-tauri-drag-region`. Before building it, tell the user they lose the Snap Layouts flyout, native hover and the system menu. See `references/windows.md` §4.
-- **macOS / Linux:** see `references/macos-linux.md`. Both use the same frontend markup.
+- **Linux:** keep native decorations, or set `decorations: false` and draw the bar and buttons with `enableDragRegion()` from `assets/titlebar.js`. See `references/macos-linux.md`.
+- **macOS:** use `titleBarStyle: "Overlay"`; this is unverified. See `references/macos-linux.md`.
 
 ## Windows recipe
 
@@ -36,6 +37,7 @@ On Windows, keep the native frame. Remove only the caption, let DWM keep drawing
            use tauri::Manager;
            titlebar::install(&app.get_webview_window("main").expect("main window"))?;
        }
+       let _ = app; // otherwise an unused-variable warning on other targets
        Ok(())
    })
    .invoke_handler(tauri::generate_handler![
@@ -53,20 +55,27 @@ On Windows, keep the native frame. Remove only the caption, let DWM keep drawing
 Breaking any of these reproduces a bug that was already hit and fixed. `references/troubleshooting.md` lists each symptom with its cause.
 
 - **Don't trim the Rust module.** Every part is load-bearing: `DwmDefWindowProc` runs first for **every** message, the black `WM_ERASEBKGND` fill, the region hole in `WRY_WEBVIEW`, the top resize band, and leaving the client top unmoved when maximized.
-- **Size the title bar from `--titlebar-height`, never a fixed height.** It is about 22 CSS px shorter when maximized; that is native Windows behaviour. Controls inside must scale with it too.
-- **Mark interactive children `app-region: no-drag`.** Nothing drawn inside the top-right button rect is visible, including borders, shadows and popups.
+- **Size the title bar from `--titlebar-height`, never a fixed height.** At 150% it drops from 29.3 to 22 CSS px when maximized, which is native Windows behaviour. Controls inside must scale with it too.
+- **Mark interactive children `app-region: no-drag`.**
+- **Keep content out of the top-right button rect.** Nothing drawn there is visible, including borders, shadows and popups.
 - **Color the buttons with `setTitlebarColor` only.** Calling `setTheme()` for that also flips the page's `prefers-color-scheme`.
+- **Platform config files (`tauri.linux.conf.json`, …) must repeat the whole window object.** Arrays are replaced, not merged.
 - **Test automation acts only on the app's own window.** Maximize with real clicks, not `ShowWindow`.
 
 ## Verified scope
 
-- **Verified:** Windows 11 25H2, 150% scale, WebView2 153, tauri 2.12.0 / wry 0.57.0 / tao 0.37.1 / windows 0.62.2, verified 2026-09-27.
+- **Verified:**
+  - Windows 11 25H2, 150% scale, WebView2 153, tauri 2.12.0 / wry 0.57.0 / tao 0.37.1 / windows 0.62.2;
+  - Linux: Ubuntu 24.04, X11 with openbox, WebKitGTK 2.52.6.
+
+  Both were verified 2026-09-27.
 - **Not verified:**
   - Windows 10;
   - moving between monitors with different DPI;
   - touch or pen input;
   - several windows;
-  - macOS and Linux.
+  - GNOME, KDE and Wayland;
+  - macOS.
 
 State the unverified parts when they matter. `install` depends on wry's `WRY_WEBVIEW` container class, so rerun the verification script after any Tauri or wry upgrade.
 

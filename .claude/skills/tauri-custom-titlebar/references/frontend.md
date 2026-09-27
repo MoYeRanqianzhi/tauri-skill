@@ -41,7 +41,7 @@ body { display: flex; flex-direction: column; }
   box-sizing: content-box;                    /* border-bottom stays below the button hole */
   flex: none;
   height: var(--bar);
-  padding: var(--titlebar-top, 0px) var(--titlebar-right, 0px) 0 10px;
+  padding: var(--titlebar-top, 0px) var(--titlebar-right, 8px) 0 10px;
   display: flex; align-items: center; gap: 2px;
   background: var(--titlebar-bg);
   color: var(--titlebar-fg);
@@ -73,8 +73,8 @@ addEventListener('blur', () => document.body.classList.add('inactive'));
 Key points:
 
 - **The drag region is `app-region: drag` on the bar**, with `no-drag` on every interactive child. wry turns on WebView2's non-client region support, so drag, double-click maximize and restore, the right-click system menu and Aero Snap all come from Windows. All of these were verified.
-  - `data-tauri-drag-region` drags and double-clicks through JavaScript and has no system menu, so prefer `app-region`.
-  - Adding `data-tauri-drag-region` to the same bar (for macOS/Linux) is harmless on Windows (verified): WebView2's drag overlay takes the mouse first, so double-click still toggles only once. On other platforms it needs `core:window:allow-start-dragging` and `core:window:allow-internal-toggle-maximize`.
+  - `data-tauri-drag-region` drags and double-clicks through JavaScript and has no system menu, so prefer `app-region` on Windows.
+  - If `data-tauri-drag-region` ends up on the same bar, it is harmless on Windows (verified): WebView2's drag overlay takes the mouse first, so double-click still toggles only once.
 - **`setTitlebarColor` takes `#rrggbb` only.** Other formats (`rgb()`, names, 3-digit hex) make the command return an error.
 - **Do not call `getCurrentWindow().minimize()`, `toggleMaximize()` or `close()`** for the native buttons, and add no `core:window:*` permissions for them.
 
@@ -97,4 +97,4 @@ The bar follows the native button height, so it is shorter when maximized. That 
 ## Other platforms in the same markup
 
 - **Windows 10:** the helpers run, but the caption color has no effect. Not tested.
-- **macOS and Linux:** `watchTitlebarInsets` and `setTitlebarColor` return immediately, so the CSS fallbacks (`32px`, `0px`) apply. See `macos-linux.md` for the traffic-light inset on macOS and for Linux options. Keep `app-region: drag` and add `data-tauri-drag-region` to the same bar, plus the two permissions above, so that platforms without `app-region` support can still drag.
+- **Linux (verified on X11) and macOS (unverified):** `watchTitlebarInsets` and `setTitlebarColor` return immediately, so the CSS fallbacks (`32px`, `0px`, `8px`) apply. WebKitGTK ignores `app-region`. Where the page draws the whole bar, call `enableDragRegion(bar)` from `titlebar.js` (drag plus double-click maximize) and render your own buttons. See `macos-linux.md` for the code, permissions, config and the traffic-light inset.
