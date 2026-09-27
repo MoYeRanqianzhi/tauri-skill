@@ -9,3 +9,5 @@ poc/shots/
 poc/app.log
 poc/**/__pycache__/
 poc/**/package-lock.json
+poc-blind/
+__pycache__/

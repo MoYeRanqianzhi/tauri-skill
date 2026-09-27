@@ -14,11 +14,17 @@ Only automate windows that your own test launched. Identify them by exact title 
 
 **How to apply:**
 - Warn the user before any run that moves the real mouse. Keep runs short. Drop `HWND_TOPMOST` afterwards.
-- If you use the Alt-tap trick to get foreground, send Escape right after. Otherwise the window stays in system-menu mode and every mouse-based check gives false results.
+- **Never inject keystrokes to get foreground.** An Alt tap reaches whatever app is in front, and leaves the target in system-menu mode, so mouse checks give false results. Instead, call `AttachThreadInput` to the foreground thread, then `SetForegroundWindow` and `BringWindowToTop` (as in `scripts/verify_windows_titlebar.py` and `poc/probe.py`).
+- **Declare ctypes `argtypes` for HWND parameters.** Otherwise `HWND_TOPMOST` (-1) is passed as a 32-bit int and `SetWindowPos` silently fails on x64.
+- **Check that every click point belongs to your window** (`GetAncestor(WindowFromPoint(pt), GA_ROOT)`) before clicking.
 - Maximize with real clicks, not cross-process `ShowWindow`.
 - More traps: `.claude/skills/tauri-custom-titlebar/references/troubleshooting.md` § Testing traps.
 
-**Evidence:** the incident above, reported to the user in-session on 2026-09-27. Alt-menu-mode diagnosis: zero band messages were logged until Escape was sent, and afterwards the cursor was SIZENS within 20 ms.
+**Evidence:**
+- The incident above, reported to the user in-session on 2026-09-27.
+- Alt-menu-mode diagnosis: zero band messages were logged until Escape was sent, and afterwards the cursor was SIZENS within 20 ms.
+- Blind-test review (2026-09-27) flagged that the verify script's Alt and Escape presses went to the foreground app.
+- The `AttachThreadInput` rewrite passed with the user's browser in front, with no keys sent. `SetWindowPos` returned 0 before `argtypes` were declared.
 
 **Recheck when:** the harness gains a sandboxed desktop (VM or separate session) where these precautions do not apply.
 

@@ -46,6 +46,24 @@ Last results (Ubuntu 24.04, Xvfb + openbox, WebKitGTK 2.52.6):
 
 Right-click showed WebKit's page context menu.
 
+## Blind test (does the skill alone prevent the pitfalls?)
+
+Run this after any substantial skill change.
+
+1. Give a fresh subagent only the skill directory. Forbid reading `poc/`, because that would spoil the test.
+2. Have it create a new create-tauri-app project in a new, git-ignored directory (`poc-blind/`), implement the title bar from the skill alone, run `scripts/verify_windows_titlebar.py`, take a screenshot, and report every friction point.
+3. Speed up builds with `CARGO_TARGET_DIR` inside that directory.
+
+Last run (2026-09-27, template `vanilla-ts`): `ALL PASS` on the first try, with the Rust module unchanged. The friction points it reported were fixed:
+- TS7016 on `titlebar.js`: `assets/titlebar.d.ts` added, verified under `strict` without `allowJs`, including a `@ts-expect-error` probe;
+- merging `generate_handler!` instead of replacing it;
+- the window label;
+- template CSS leaking into the bar;
+- the manual checklist needing a human;
+- the verify script's Alt/Escape keystrokes and unchecked clicks: rewritten with `AttachThreadInput` and ownership checks, and it now finds the window by class + title;
+- the cursor left on the maximize button;
+- the Win11 border line in screenshots.
+
 ## Keeping the skill honest
 
 - After changing an asset: copy it into the POC and check with `cmp`, then rerun both the Windows and Linux runs before editing the skill's claims.

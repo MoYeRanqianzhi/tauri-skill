@@ -23,6 +23,8 @@ Every row is a failure that was reproduced during development and fixed. Each fi
 | Linux: window title or size reset to "Tauri App" / 800 × 600 | `tauri.linux.conf.json` replaced the whole `windows` array | Repeat the complete window object in the platform config file. |
 | Linux: edges do not resize | Window is maximized (Tauri disables the inset then), or the press is more than 5 px inside the edge | Restore first; press within 5 px of the edge. |
 | Unused-variable warning or error for `app` in `setup` on non-Windows targets | `app` is only used inside `#[cfg(windows)]` | Add `let _ = app;` after the Windows block. |
+| A thin translucent line along the top edge in screenshots | Windows 11's own window border; the left and right edges show the same line | Not a gap; nothing to fix. |
+| Title bar buttons or inputs look oversized or shadowed | Template global styles (create-tauri-app: `button, input { padding: .6em 1.2em; box-shadow … }`, 16px/24px root font) | Scope the template CSS to `main`, or reset `padding`, `box-shadow` and `line-height` inside `.titlebar`. |
 | Search box or tabs look squeezed when maximized | Fixed pixel heights inside a bar that shrinks | Use `height: min(28px, calc(var(--titlebar-height) - 8px))`, or the min-height variant. |
 
 ## Do not add
@@ -43,7 +45,9 @@ These produced false failures or real damage while the harness was being built.
 | Trap | What happened | Do this |
 |---|---|---|
 | Acting on `GetForegroundWindow()` | The probe maximized and closed the user's browser window | Find the target by exact title, plus class `Tauri Window`, plus a `WRY_WEBVIEW` child (or by the PID you launched). |
-| Alt tap to win `SetForegroundWindow` | The window entered system-menu keyboard mode: the cursor stayed an arrow, nothing hovered, and no messages reached the band | Send Escape after the Alt tap. |
+| Alt tap to win `SetForegroundWindow` | The Alt keystroke reached whatever app was in front. It also left the target in system-menu mode: the cursor stayed an arrow, nothing hovered, and no messages reached the band | Never inject keys. Call `AttachThreadInput` to the foreground thread, then `SetForegroundWindow` and `BringWindowToTop`, as the verify script does. |
+| Win32 calls through ctypes without `argtypes` | `SetWindowPos(HWND_TOPMOST)` silently failed on x64, because `-1` was passed as a 32-bit int | Declare `argtypes`, and pass `wintypes.HWND(-1)`. |
+| Finding the window by title alone | An Explorer window with the same name can match | Find by class `Tauri Window` plus a unique title. |
 | `ShowWindow(SW_MAXIMIZE)` from the test process | About half of the runs left the webview at its old size (black area). Plain Tauri windows do the same | Maximize and restore by clicking the real maximize button (0 of 10 failures). |
 | Not DPI-aware | Coordinates and screenshots are off by the scale factor | Call `SetProcessDpiAwarenessContext(-4)` before anything else. |
 | Hovering maximize and moving on | The Snap Layouts flyout covers later screenshots | Send Escape after each maximize hover. |

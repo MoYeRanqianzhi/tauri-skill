@@ -46,9 +46,15 @@ On Windows, keep the native frame. Remove only the caption, let DWM keep drawing
    ])
    ```
 
-   `serde` with `derive` must be a dependency (the template has it). No capability or `core:window:*` permission is needed.
-3. **Frontend:** copy `assets/titlebar.js`, call `watchTitlebarInsets()` once, and call `setTitlebarColor(<title bar background>)` on every theme change. Lay out the title bar exactly as in `references/frontend.md`.
-4. **Verify before reporting success:** run `python scripts/verify_windows_titlebar.py "<window title>"` against the running app. It needs Pillow and moves the real mouse for about 15 s, so warn the user first. It must print `ALL PASS`. Then walk through the manual checklist in `references/windows.md` §5.
+   - Add the two commands to your existing `generate_handler!` list; don't replace it.
+   - `"main"` is the window `label` in `tauri.conf.json` (the default when omitted).
+   - `serde` with `derive` must be a dependency (the template has it).
+   - No capability or `core:window:*` permission is needed.
+3. **Frontend:** copy `assets/titlebar.js`, plus `assets/titlebar.d.ts` in TypeScript projects (strict mode works without `allowJs`). Then:
+   - call `watchTitlebarInsets()` once;
+   - call `setTitlebarColor(<title bar background>)` on every theme change;
+   - lay out the bar as in `references/frontend.md`. create-tauri-app's global `button`/`input` styles leak into the bar, so scope them to `main`.
+4. **Verify before reporting success:** give the window a unique title, then run `python scripts/verify_windows_titlebar.py "<window title>"` against the running app. It needs Pillow and moves the real mouse for about 15 s, so warn the user first. It must print `ALL PASS`. The manual checklist in `references/windows.md` §5 needs human eyes and hands, so give it to the user rather than claiming it.
 
 ## Hard rules
 

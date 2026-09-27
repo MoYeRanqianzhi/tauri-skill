@@ -12,6 +12,8 @@ The skill's shipped code is only trustworthy while `poc/titlebar-poc` builds **b
 - `src-tauri/src/titlebar.rs` = `assets/windows_titlebar.rs`;
 - `src/titlebar.js` = `assets/titlebar.js`.
 
+`assets/titlebar.d.ts` has no POC copy, because the POC is plain JS. It is checked in a TypeScript blind-test project instead (see the harness doc).
+
 The frontend example in `references/frontend.md` mirrors the POC's `index.html`.
 
 **Why:** several plausible additions turned out to be wrong or useless only when measured. Examples: `TrackMouseEvent`, a custom `WM_SETCURSOR`, and a `dark` glyph flag. Maximized-state compensation also broke DWM hit-testing. The previous skill failed because nothing it shipped had been run.
@@ -28,6 +30,7 @@ Remove temporary `POC_*` env-var knobs from the POC copy before comparing.
 **Evidence:**
 - 2026-09-27: `cmp` identical, verify script `ALL PASS`, negative control (no `install`) reported 7 failures.
 - 2026-09-27: Linux matrix passed with `enableDragRegion`, including double-click maximize (commit "Add Linux verification...").
+- 2026-09-27: `titlebar.d.ts` passed `tsc --noEmit` in a create-tauri-app `vanilla-ts` project (`strict`, no `allowJs`), and `npm run build` passed.
 - Ablation results (`WM_ERASEBKGND` required; `WM_ACTIVATE`, `TrackMouseEvent` and `WM_SETCURSOR` not needed) are summarized in the "POC: finalize..." commit message and in the skill's `references/windows.md` §2. The screenshots were not kept.
 
 **Recheck when:** Tauri, wry, tao or WebView2 is upgraded; the POC layout changes; or the harness is moved.

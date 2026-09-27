@@ -1,6 +1,6 @@
 # Frontend contract
 
-`assets/titlebar.js` connects the page to the Rust module. The page owns the whole title bar except the native button block in the top-right corner.
+`assets/titlebar.js` connects the page to the Rust module. TypeScript projects also copy `assets/titlebar.d.ts` next to it. The page owns the whole title bar except the native button block in the top-right corner.
 
 ## CSS variables
 
@@ -32,7 +32,10 @@ This markup and CSS is what the verified POC runs.
 ```
 
 ```css
+/* Starter templates style every button/input globally (create-tauri-app: padding .6em 1.2em, shadows,
+   16px/24px root font); scope those rules to `main` so they stay out of the bar. */
 :root { --titlebar-bg: #f3f3f3; --titlebar-fg: #1b1b1f; --titlebar-muted: #8a8a92; }
+.titlebar * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
 body { display: flex; flex-direction: column; }
 
@@ -88,7 +91,7 @@ The bar follows the native button height, so it is shorter when maximized. That 
 ## Colors and themes
 
 - **Call `setTitlebarColor(bg)` at start-up and whenever the title bar background changes.**
-  - DWM then chooses glyph and hover colors by contrast: white glyphs and a light hover overlay on dark or saturated colors, dark glyphs on light colors, red close hover. This was verified on `#f3f3f3`, `#202024`, `#3140b8`, `#0f5e56` and `#efe6d8`, both active and inactive.
+  - DWM then chooses glyph and hover colors by contrast: white glyphs and a light hover overlay on dark or saturated colors, dark glyphs on light colors, red close hover. Glyphs were verified on `#f3f3f3`, `#202024`, `#3140b8`, `#0f5e56` and `#efe6d8`, both active and inactive; hover was verified on `#f3f3f3`, `#202024` and `#3140b8`.
   - Pass `null` to return to the system caption color.
 - **Following the OS light/dark setting:** choose the palette with `matchMedia('(prefers-color-scheme: dark)')` and call `setTitlebarColor` again in its `change` listener. Switching the OS theme live was not tested.
 - **`getCurrentWindow().setTheme()`** sets the window's light/dark mode and also WebView2's preferred color scheme. Use it only when that is exactly what you want for the whole page, never just to recolor the buttons.

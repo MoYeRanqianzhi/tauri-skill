@@ -71,6 +71,7 @@ All figures are in physical px at 150%. CSS px = physical / 1.5.
 | Top corners | band-height wide | about 9–10 wide |
 | Top band above the buttons | `HTTOP` | `HTTOP` (buttons start below the band) |
 
+- **The top edge shows a 1–2 px translucent line in screenshots.** It is Windows 11's own window border, the same as on the left and right edges. It is not a gap.
 - **The title bar is shorter when maximized.** This is native behaviour. Windows places a maximized window's frame off-screen and DWM keeps its button rect relative to the window, so the top 11 px are hidden. It was verified against a stock window.
 - **`WM_GETMINMAXINFO` cannot change this.** Setting `ptMaxPosition`/`ptMaxSize` to the work area was tested: Windows still put the window at (-11, -11), and DWM stopped hit-testing its buttons.
 
@@ -118,7 +119,7 @@ All of these passed on the verified setup.
 
 ### Harness pitfalls
 
-Automation traps are listed in `troubleshooting.md` § Testing traps. Two of them caused damage or false results here: acting on the foreground window, and the Alt-tap menu mode.
+Automation traps are listed in `troubleshooting.md` § Testing traps. Three of them caused damage or false results here: acting on the foreground window, injecting an Alt tap to gain foreground rights, and calling ctypes without `argtypes`.
 
 ## 6. Limits and upgrades
 

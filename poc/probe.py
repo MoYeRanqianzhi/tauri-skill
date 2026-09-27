@@ -83,12 +83,21 @@ def shot(path, box=None):
 
 
 def foreground(h):
-    # Temporarily topmost so other apps cannot cover the window under test.
-    u32.SetWindowPos(h, -1, 0, 0, 0, 0, 0x3 | 0x10)
-    # Tapping Alt grants foreground rights but puts the window into system-menu keyboard mode, which
-    # swallows mouse messages (cursor stuck on arrow, no hover). Escape leaves that mode.
-    key(0x12); u32.SetForegroundWindow(h); key(0x12, True); time.sleep(0.2)
-    key(0x1B); key(0x1B, True); time.sleep(0.2)
+    # No keystrokes: an Alt tap would reach whatever app is in front. AttachThreadInput to the
+    # foreground thread lets SetForegroundWindow pass the foreground lock. argtypes matter:
+    # without them HWND_TOPMOST (-1) is passed as a 32-bit int and SetWindowPos fails.
+    u32.SetWindowPos.argtypes = [wt.HWND, wt.HWND, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, wt.UINT]
+    u32.GetForegroundWindow.restype = wt.HWND
+    u32.SetWindowPos(h, wt.HWND(-1), 0, 0, 0, 0, 0x3 | 0x10)
+    fg = u32.GetForegroundWindow()
+    if fg and fg != h:
+        me = ctypes.windll.kernel32.GetCurrentThreadId()
+        other = u32.GetWindowThreadProcessId(wt.HWND(fg), None)
+        u32.AttachThreadInput(me, other, True)
+        u32.SetForegroundWindow(h)
+        u32.BringWindowToTop(h)
+        u32.AttachThreadInput(me, other, False)
+    time.sleep(0.4)
 
 
 if __name__ == '__main__':
