@@ -1,0 +1,59 @@
+/*
+ * mica.css: base styles for a Tauri page on the Windows 11 Mica backdrop (tauri-windows-mica skill).
+ *
+ * The window is created with "transparent": true, so the page decides where Mica shows: every
+ * pixel the page leaves transparent shows the material, and any opaque background hides it. Keep
+ * html and body transparent and give surfaces the translucent WinUI 3 fills below, so they pick up
+ * the material and follow it into its inactive (solid) state. The values come from
+ * microsoft-ui-xaml controls/dev/CommonStyles/Common_themeresources_any.xaml (#AARRGGBB there).
+ *
+ * The tokens switch with prefers-color-scheme. In a Tauri window that media query follows the
+ * window theme (system, or "theme" in tauri.conf.json, or Window.setTheme()), which is also what
+ * tints Mica, so page and backdrop always agree.
+ *
+ * :root[data-mica="off"] is set by mica.js where Mica is unavailable (Windows 10, macOS, Linux).
+ * It paints SolidBackgroundFillColorBase, the color Windows itself uses when Mica falls back.
+ */
+:root {
+  color-scheme: light dark;
+  --mica-fallback: #f3f3f3;                    /* SolidBackgroundFillColorBase */
+  --mica-text: rgb(0 0 0 / 0.894);             /* TextFillColorPrimary */
+  --mica-text-secondary: rgb(0 0 0 / 0.62);    /* TextFillColorSecondary */
+  --mica-text-tertiary: rgb(0 0 0 / 0.447);    /* TextFillColorTertiary */
+  --mica-layer: rgb(255 255 255 / 0.5);        /* LayerFillColorDefault: content area on Mica */
+  --mica-card: rgb(255 255 255 / 0.702);       /* CardBackgroundFillColorDefault */
+  --mica-stroke: rgb(0 0 0 / 0.059);           /* CardStrokeColorDefault, DividerStrokeColorDefault */
+  --mica-control: rgb(255 255 255 / 0.702);    /* ControlFillColorDefault: buttons, inputs */
+  --mica-control-hover: rgb(249 249 249 / 0.502); /* ControlFillColorSecondary */
+  --mica-control-stroke: rgb(0 0 0 / 0.059);   /* ControlStrokeColorDefault */
+  --mica-subtle-hover: rgb(0 0 0 / 0.035);     /* SubtleFillColorSecondary: list and nav items */
+  --mica-subtle-pressed: rgb(0 0 0 / 0.024);   /* SubtleFillColorTertiary */
+  background: transparent;
+  color: var(--mica-text);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --mica-fallback: #202020;
+    --mica-text: #ffffff;
+    --mica-text-secondary: rgb(255 255 255 / 0.773);
+    --mica-text-tertiary: rgb(255 255 255 / 0.529);
+    --mica-layer: rgb(58 58 58 / 0.298);
+    --mica-card: rgb(255 255 255 / 0.051);
+    --mica-stroke: rgb(0 0 0 / 0.098);
+    --mica-control: rgb(255 255 255 / 0.059);
+    --mica-control-hover: rgb(255 255 255 / 0.082);
+    --mica-control-stroke: rgb(255 255 255 / 0.071);
+    --mica-subtle-hover: rgb(255 255 255 / 0.059);
+    --mica-subtle-pressed: rgb(255 255 255 / 0.039);
+  }
+}
+
+html,
+body {
+  background: transparent;
+}
+
+:root[data-mica="off"] {
+  background: var(--mica-fallback);
+}

@@ -5,7 +5,7 @@ metadata:
   type: feedback
   scope: all skills under .claude/skills/ and their POC/demo apps in this repo
   status: active
-  last_verified: 2026-09-27
+  last_verified: 2026-09-28
 ---
 
 Skills in this repo must be written in English only. They follow the standard skill layout: frontmatter, a lean SKILL.md, details in `references/`, and verified code in `assets/`. Every instruction must have been exercised in a real build, not assumed to work. The purpose of a skill is to stop the consuming agent from hitting known pitfalls, which saves development time and tokens.
@@ -17,12 +17,15 @@ Demo and POC UIs used to verify a skill must look modern and minimal. They must 
 - the first POC components were "too ugly" and the title bar colors did not match;
 - "SKILL.md is too big; move content into references".
 
+User statement on 2026-09-28, after the Mica POC matrix passed: "this is a simple feature; just write the skill", with no matrix rerun and no blind test.
+
 **Why:** the old skill described an approach (a WebView2 composition-hosting wry fork) that was never validated. Agents followed it and still failed. A skill is only worth its token cost if following it is sufficient.
 
 **How to apply:**
 - Keep SKILL.md to the decision, the minimal steps and the hard rules. Put symptom tables, measurements and rationale in references.
 - Mark anything not run on real hardware as "not verified" in the skill itself.
 - For UI verification, capture screenshots across themes and states (active, inactive, maximized) before claiming success.
+- Match the verification effort to the skill's size. The POC matrix (positive and negative variants) is the baseline. For the small tauri-windows-mica skill, the user judged that baseline sufficient and skipped the blind test (2026-09-28), so ask before spending on a blind test for a small skill.
 
 **Recheck when:** the user states a different convention for skills, or a skill targets an audience that needs another language.
 

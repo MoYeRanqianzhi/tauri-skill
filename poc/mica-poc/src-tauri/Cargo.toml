@@ -1,0 +1,32 @@
+[package]
+name = "mica-poc"
+version = "0.1.0"
+description = "POC that proves the tauri-windows-mica skill"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+# The `_lib` suffix keeps the lib name distinct from the bin name (rust-lang/cargo#8519 on Windows).
+name = "mica_poc_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Only for the POC_TITLEBAR=1 variant, which combines Mica with the tauri-custom-titlebar module.
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_Graphics_Dwm",
+  "Win32_Graphics_Gdi",
+  "Win32_System_LibraryLoader",
+  "Win32_UI_Controls",
+  "Win32_UI_HiDpi",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }

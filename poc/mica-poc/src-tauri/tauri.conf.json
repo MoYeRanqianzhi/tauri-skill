@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "mica-poc",
+  "version": "0.1.0",
+  "identifier": "com.poc.mica",
+  "build": {
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "mica-poc",
+        "width": 960,
+        "height": 640,
+        "transparent": true,
+        "windowEffects": { "effects": ["mica"] },
+        "create": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false,
+    "icon": ["icons/icon.ico"]
+  }
+}

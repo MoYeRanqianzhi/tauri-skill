@@ -1,0 +1,107 @@
+/* Demo styles for mica-poc: a Windows 11 Settings-like page built only from the mica.css tokens.
+ * The nav pane sits on bare Mica; the content area is a LayerFillColorDefault layer with cards. */
+:root {
+  --accent: #005fb8;          /* AccentFillColorDefault for the default Windows blue (light) */
+  --on-accent: #ffffff;
+  font: 14px/20px "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --accent: #60cdff; --on-accent: #000000; }
+}
+/* The negative control: create-tauri-app's styles.css paints :root, which hides Mica. */
+:root.opaque-page { background-color: #f6f6f6; }
+@media (prefers-color-scheme: dark) {
+  :root.opaque-page { background-color: #2f2f2f; }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+svg { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; }
+
+/* Only with POC_TITLEBAR=1: a transparent page-drawn bar, so Mica runs under the caption buttons. */
+.titlebar {
+  --bar: var(--titlebar-height, 32px);
+  flex: none; height: var(--bar); box-sizing: content-box; display: flex; align-items: center; gap: 12px;
+  padding: var(--titlebar-top, 0px) var(--titlebar-right, 8px) 0 16px;
+  app-region: drag; user-select: none; font-size: 12px;
+}
+.titlebar[hidden] { display: none; }
+.titlebar :is(input, button) { app-region: no-drag; }
+.app-icon { fill: var(--accent); stroke: none; }
+.search {
+  margin: 0 auto; width: min(360px, 40%); height: min(28px, calc(var(--bar) - 6px)); padding: 0 10px;
+  border: 1px solid var(--mica-control-stroke); border-radius: 4px; outline: none;
+  background: var(--mica-control); color: inherit; font: inherit;
+}
+
+.shell { flex: 1; display: flex; min-height: 0; }
+.nav { width: 240px; flex: none; padding: 8px 4px; display: flex; flex-direction: column; gap: 2px; user-select: none; }
+.nav-item {
+  position: relative; display: flex; align-items: center; gap: 14px; height: 36px; padding: 0 12px;
+  border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left;
+}
+.nav-item:hover { background: var(--mica-subtle-hover); }
+.nav-item:active { background: var(--mica-subtle-pressed); color: var(--mica-text-secondary); }
+.nav-item[aria-current] { background: var(--mica-subtle-hover); }
+.nav-item[aria-current]::before {
+  content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--accent);
+}
+
+.content {
+  flex: 1; overflow: auto; padding: 28px 40px 40px;
+  background: var(--mica-layer); border: 1px solid var(--mica-stroke); border-width: 1px 0 0 1px;
+  border-top-left-radius: 8px;
+}
+:root[data-titlebar="custom"] .nav { padding-top: 4px; }
+h1 { margin: 0; font: 600 28px/36px "Segoe UI Variable Display", "Segoe UI", sans-serif; }
+.subtitle { margin: 2px 0 24px; color: var(--mica-text-secondary); }
+h2 { margin: 24px 0 8px; font-size: 14px; font-weight: 600; }
+
+.card {
+  display: flex; align-items: center; gap: 16px; min-height: 68px; padding: 12px 16px; margin-bottom: 4px;
+  background: var(--mica-card); border: 1px solid var(--mica-stroke); border-radius: 6px;
+}
+.card-icon { width: 20px; height: 20px; }
+.card-text { flex: 1; min-width: 0; }
+.card-hint { color: var(--mica-text-secondary); font-size: 12px; line-height: 16px; }
+
+.segmented { display: inline-flex; gap: 2px; padding: 2px; border-radius: 6px; background: var(--mica-subtle-hover); }
+.segmented button {
+  height: 28px; padding: 0 12px; border: 0; border-radius: 4px; background: transparent; color: var(--mica-text-secondary); font: inherit;
+}
+.segmented button:hover { color: var(--mica-text); }
+.segmented button[aria-pressed="true"] { background: var(--mica-control); color: var(--mica-text); box-shadow: 0 0 0 1px var(--mica-control-stroke); }
+
+.controls { gap: 12px; }
+.btn {
+  height: 32px; padding: 0 16px; border-radius: 4px; border: 1px solid var(--mica-control-stroke);
+  background: var(--mica-control); color: inherit; font: inherit;
+}
+.btn:hover { background: var(--mica-control-hover); }
+.btn.accent { background: var(--accent); border-color: transparent; color: var(--on-accent); }
+.btn.accent:hover { filter: brightness(1.08); }
+.field {
+  width: 200px; height: 32px; padding: 0 10px; border-radius: 4px; outline: none;
+  border: 1px solid var(--mica-control-stroke); border-bottom-color: var(--mica-text-tertiary);
+  background: var(--mica-control); color: inherit; font: inherit;
+}
+.field:focus { border-bottom: 2px solid var(--accent); }
+.field::placeholder { color: var(--mica-text-secondary); }
+
+.switch { margin-left: auto; display: inline-flex; }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch .track {
+  position: relative; width: 40px; height: 20px; border-radius: 10px; border: 1px solid var(--mica-text-secondary);
+  background: var(--mica-control); transition: background .15s;
+}
+.switch .track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 6px;
+  background: var(--mica-text-secondary); transition: transform .15s;
+}
+.switch input:checked + .track { background: var(--accent); border-color: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(20px); background: var(--on-accent); }
+
+.status { align-items: start; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 24px; margin: 0; font-size: 12px; }
+dt { color: var(--mica-text-secondary); }
+dd { margin: 0; font-family: "Cascadia Mono", Consolas, monospace; }
