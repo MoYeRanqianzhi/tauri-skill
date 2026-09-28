@@ -1,5 +1,5 @@
 """Win32 probe for the titlebar POC: window tree, hit-tests, real mouse input, screenshots."""
-import ctypes, ctypes.wintypes as wt, sys, time, json
+import ctypes, ctypes.wintypes as wt, sys, time, json, os
 from PIL import ImageGrab
 
 u32 = ctypes.windll.user32
@@ -106,8 +106,9 @@ if __name__ == '__main__':
     print('window', rect(h), 'client', rect(h, True), 'frame', visible_frame(h))
 
 
-EXE = r'G:\ClaudeProjects\tauri-skill\poc\titlebar-poc\src-tauri\target\debug\titlebar-poc.exe'
-LOG = r'G:\ClaudeProjects\tauri-skill\poc\app.log'
+HERE = os.path.dirname(os.path.abspath(__file__))
+EXE = os.path.join(HERE, 'titlebar-poc', 'src-tauri', 'target', 'debug', 'titlebar-poc.exe')
+LOG = os.path.join(HERE, 'app.log')
 
 
 def launch(env=None, wait=4):
